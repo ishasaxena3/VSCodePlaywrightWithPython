@@ -13,7 +13,6 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]  # Run tests in parallel for each browser
 
-
     steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
@@ -50,7 +49,7 @@ jobs:
 
       # 7️⃣ Upload reports to GitHub Pages
       - name: Upload to GitHub Pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2  # ✅ upgraded from v1 to v2
         with:
           path: reports/
 
