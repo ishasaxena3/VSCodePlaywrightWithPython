@@ -35,26 +35,27 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps
 
+      # Run tests for this browser
       - name: Run tests
         run: |
           pytest tests/ --browser ${{ matrix.browser }} --html=report-${{ matrix.browser }}.html --self-contained-html
-        continue-on-error: true
+        continue-on-error: true  # <-- allows other matrix jobs to continue
 
-      - name: Collect all reports
+      # Collect reports
+      - name: Collect reports
         run: |
           mkdir -p reports
           mv report-*.html reports/
 
-      # ✅ Upload a single artifact for deploy
-      - name: Upload reports for Pages
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: reports/   # single folder, all reports inside
-          # do NOT set a custom name; default works with deploy-pages
-
+  # Deploy job (runs after all test jobs)
   deploy:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      - name: Upload reports for GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: reports/   # Single folder containing all reports
+
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
