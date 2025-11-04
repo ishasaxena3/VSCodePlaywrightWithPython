@@ -1,4 +1,4 @@
-name: Playwright Python Cross-Browser Tests and Deploy Reports
+name: Playwright Python Cross-Browser Tests with Unique Reports
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         browser: [chromium, firefox, webkit]
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -35,27 +35,57 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps
 
-      # Run tests for this browser
+      # Run tests with unique report name per browser per run
       - name: Run tests
         run: |
-          pytest tests/ --browser ${{ matrix.browser }} --html=report-${{ matrix.browser }}.html --self-contained-html
-        continue-on-error: true  # <-- allows other matrix jobs to continue
+          pytest tests/ --browser ${{ matrix.browser }} \
+            --html=report-${{ matrix.browser }}-${{ github.run_number }}.html \
+            --self-contained-html
+        continue-on-error: true
 
-      # Collect reports
-      - name: Collect reports
-        run: |
-          mkdir -p reports
-          mv report-*.html reports/
+      # Upload unique artifact per browser
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.browser }}-${{ github.run_number }}
+          path: report-${{ matrix.browser }}-${{ github.run_number }}.html
 
-  # Deploy job (runs after all test jobs)
   deploy:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Upload reports for GitHub Pages
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Create reports folder
+      - name: Create reports folder
+        run: mkdir -p reports
+
+      # Download artifacts from matrix jobs
+      - name: Download Chromium report
+        uses: actions/download-artifact@v4
+        with:
+          name: report-chromium-${{ github.run_number }}
+          path: reports/
+
+      - name: Download Firefox report
+        uses: actions/download-artifact@v4
+        with:
+          name: report-firefox-${{ github.run_number }}
+          path: reports/
+
+      - name: Download WebKit report
+        uses: actions/download-artifact@v4
+        with:
+          name: report-webkit-${{ github.run_number }}
+          path: reports/
+
+      # Upload combined reports folder to GitHub Pages
+      - name: Upload reports for Pages
         uses: actions/upload-pages-artifact@v4
         with:
-          path: reports/   # Single folder containing all reports
+          path: reports/
 
+      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
