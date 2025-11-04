@@ -15,7 +15,7 @@ jobs:
 
 
     steps:
-      # 1️⃣ Checkout the repository
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -36,16 +36,28 @@ jobs:
         run: |
           playwright install --with-deps
 
-      # 5️⃣ Run Playwright tests with HTML report
+      # 5️⃣ Run Playwright tests
       - name: Run tests
         run: |
-          pytest --maxfail=1 --disable-warnings -q --html=report.html --self-contained-html
-        continue-on-error: true   # ensures artifact upload even if tests fail
+          pytest tests/ --browser ${{ matrix.browser }} --html=report-${{ matrix.browser }}.html --self-contained-html
+        continue-on-error: true
 
-      # 6️⃣ Upload HTML report as artifact
-      - name: Upload HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
+      # 6️⃣ Collect reports
+      - name: Collect all reports
+        run: |
+          mkdir -p reports
+          mv report-*.html reports/
+
+      # 7️⃣ Upload reports to GitHub Pages
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v1
         with:
-            name: report-${{ matrix.browser }}-${{ github.run_id }}
-            path: report-${{ matrix.browser }}.html
+          path: reports/
+
+  # 8️⃣ Deploy to GitHub Pages
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v1
