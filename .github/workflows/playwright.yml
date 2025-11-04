@@ -20,7 +20,9 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-playwright pytest-html
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
