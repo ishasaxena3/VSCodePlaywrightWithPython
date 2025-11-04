@@ -46,17 +46,17 @@ jobs:
         continue-on-error: true
 
       # 6️⃣ Collect reports
+
       - name: Collect reports
         run: |
-          mkdir -p reports
-          mv report-*.html reports/
+         mkdir -p all-reports
+         mv report-*.html all-reports/
 
       # 7️⃣ Upload reports for Pages (unique artifact name per browser)
       - name: Upload reports for Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
-          path: reports/
-          name: reports-${{ matrix.browser }}-${{ github.run_id }}
+          path: all-reports/
 
   deploy:
     needs: test
