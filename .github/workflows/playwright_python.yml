@@ -1,4 +1,4 @@
-name: Playwright Python Tests
+name: Playwright Python Cross-Browser Tests
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]  # Run tests in parallel for each browser
+
 
     steps:
       # 1️⃣ Checkout the repository
